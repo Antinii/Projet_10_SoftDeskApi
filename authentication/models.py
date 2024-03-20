@@ -6,11 +6,12 @@ class User(AbstractUser):
     """
     Custom user model for the application
     """
-    username = models.CharField(max_length=64, unique=True)
-    email = models.EmailField(max_length=128, blank=True)
     birthdate = models.DateField()
 
-    can_be_contacted = models.BooleanField(default=True)
-    can_data_be_shared = models.BooleanField(default=True)
+    can_be_contacted = models.BooleanField(default=False)
+    can_data_be_shared = models.BooleanField(default=False)
 
-    REQUIRED_FIELDS = ['username', 'birthdate']
+    REQUIRED_FIELDS = ['birthdate']
+
+    def __str__(self):
+        return self.username
