@@ -5,7 +5,7 @@ from project.models import Project, Contributor, Issue, Comment
 class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'title', 'description', 'type', 'author', 'created_time']
+        fields = ['id', 'created_time']
    
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'created_time', 'title', 'description', 'type', 'author', 'contributors', 'issues']
+        fields = "__all__"
     
     def get_issues(self, instance):
         queryset = instance.issues.filter(project=instance.id)
@@ -28,22 +28,43 @@ class ContributorSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'project']
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentListSerializer(serializers.ModelSerializer):
     """
     Serializer for comments attached to an issue
     """
     class Meta:
         model = Comment
-        fields = ['id', 'description', 'author', 'issue', 'created_time']
+        fields = ['id']
+
+
+class CommentDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
 
 
 class IssueListSerializer(serializers.ModelSerializer):
     """
     Serializer for Issue attached to a project
-    """
+    """  
     class Meta:
         model = Issue
-        fields = ['id', 'title', 'description', 'priority', 'balise', 'status', 'project']
+        fields = ['id']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        assigned_to_user = request.user
+        contributor = Contributor.objects.get(user=assigned_to_user)
+        validated_data['assigned_to'] = contributor
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        assigned_to_user = request.user
+        assigned_to_contributor = Contributor.objects.get(user=assigned_to_user)
+        instance.assigned_to = assigned_to_contributor
+        instance.save()
+        return instance
 
 
 class IssueDetailSerializer(serializers.ModelSerializer):
@@ -54,9 +75,9 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id', 'title', 'description', 'priority', 'balise', 'status', 'project', 'author', 'created_time', 'comments', 'assigned_to']
+        fields = "__all__"
 
     def get_comments(self, instance):
         queryset = Comment.objects.filter(issue_id=instance.id)
-        serializer = CommentSerializer(queryset, many=True)
+        serializer = CommentListSerializer(queryset, many=True)
         return serializer.data

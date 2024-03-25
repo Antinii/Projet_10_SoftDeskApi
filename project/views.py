@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from project.models import Project, Contributor, Issue, Comment
 from project.permissions import IsAuthorPermission, ProjectPermission, ContributorPermission, IssuePermission, CommentPermission
-from project.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer, IssueDetailSerializer, IssueListSerializer, CommentSerializer
+from project.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer, IssueDetailSerializer, IssueListSerializer, CommentListSerializer, CommentDetailSerializer
 
 
 class MultipleSerializerMixin:
@@ -23,6 +23,11 @@ class ProjectViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
     detail_serializer_class = ProjectDetailSerializer
     permission_classes = [IsAuthenticated, IsAuthorPermission, ProjectPermission]
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return self.detail_serializer_class
+        return super().get_serializer_class()
+    
     def perform_create(self, serializer):
         user = self.request.user
         serializer.save(author=user, contributors=[user])
@@ -50,27 +55,35 @@ class IssueViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
     detail_serializer_class = IssueDetailSerializer
     permission_classes = [IsAuthenticated, IsAuthorPermission, IssuePermission]
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return self.detail_serializer_class
+        return super().get_serializer_class()
+    
     def perform_create(self, serializer):
         author = self.request.user
         project_id = self.request.data.get("project")
-        if not Contributor.objects.filter(user__pk=author.id, project__pk=project_id).exists():
+        if not Contributor.objects.filter(user=author, project=project_id).exists():
             raise PermissionDenied("Seuls les contributeurs du projet peuvent créer un problème.")
 
-        assignee_id = self.request.data.get("assigned_to", None)
+        assignee_id = self.request.data.get("assigned_to")
         if assignee_id:
-            is_contributor = Contributor.objects.filter(
-                user__pk=assignee_id, project__pk=project_id
-            ).exists()
-            if not is_contributor:
+            if not Contributor.objects.filter(user_id=assignee_id, project_id=project_id).exists():
                 raise PermissionDenied("L'utilisateur assigné doit être un contributeur du projet.")
-        serializer.save(author=author)
+        serializer.save(author=author, project_id=project_id)
     
 
 class CommentViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
 
     queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    serializer_class = CommentListSerializer
+    detail_serializer_class = CommentDetailSerializer
     permission_classes = [IsAuthenticated, IsAuthorPermission, CommentPermission]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return self.detail_serializer_class
+        return super().get_serializer_class()
     
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
