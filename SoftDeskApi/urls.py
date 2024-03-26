@@ -17,9 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
+from rest_framework_nested.routers import NestedSimpleRouter
 
 from authentication.views import UserViewSet, SignupView
-from project.views import ProjectViewSet, IssueViewSet, CommentViewSet, ContributorViewSet
+from project.views import ProjectViewSet, ContributorViewSet
+from issue.views import IssueViewSet
+from comment.views import CommentViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.SimpleRouter()
@@ -30,6 +33,10 @@ router.register(r'contributors', ContributorViewSet, basename='contributors')
 router.register(r'issues', IssueViewSet, basename='issues')
 router.register(r'comments', CommentViewSet, basename='comments')
 
+projects_router = NestedSimpleRouter(router, r'projects', lookup='project')
+projects_router.register(r'issues', IssueViewSet, basename='project-issues')
+issues_router = NestedSimpleRouter(projects_router, r'issues', lookup='issue')
+issues_router.register(r'comments', CommentViewSet, basename='issue-comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,6 +45,8 @@ urlpatterns = [
     path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(router.urls)),
+    path('api/', include(projects_router.urls)),
+    path('api/', include(issues_router.urls)),
 ]
 
 urlpatterns += router.urls

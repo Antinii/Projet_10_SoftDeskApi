@@ -33,7 +33,16 @@ class ProjectPermission(permissions.BasePermission):
 
 class ContributorPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return is_contributor(request.user, obj.project)
+        project = obj.project
+        if request.method == "DELETE":
+            if project.author == request.user:
+                return True
+            else:
+                raise PermissionDenied(
+                    "Seul l'auteur du projet peut supprimer un contributeur."
+                )
+        else:
+            return is_contributor(request.user, project)
 
 
 class IssuePermission(permissions.BasePermission):

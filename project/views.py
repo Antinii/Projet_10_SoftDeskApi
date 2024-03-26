@@ -1,9 +1,9 @@
 from rest_framework import viewsets
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
-from project.models import Project, Contributor, Issue, Comment
-from project.permissions import IsAuthorPermission, ProjectPermission, ContributorPermission, IssuePermission, CommentPermission
-from project.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer, IssueDetailSerializer, IssueListSerializer, CommentListSerializer, CommentDetailSerializer
+from project.models import Project, Contributor
+from project.permissions import IsAuthorPermission, ProjectPermission, ContributorPermission, PermissionDenied
+from project.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer
 
 
 class MultipleSerializerMixin:
@@ -24,19 +24,27 @@ class ProjectViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAuthorPermission, ProjectPermission]
 
     def get_serializer_class(self):
-        if self.action == 'create':
+        if self.action == 'create' or self.action == 'update':
             return self.detail_serializer_class
         return super().get_serializer_class()
     
     def perform_create(self, serializer):
         user = self.request.user
         serializer.save(author=user, contributors=[user])
-   
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
 
 class ContributorViewSet(viewsets.ModelViewSet):
     queryset = Contributor.objects.all()
     serializer_class = ContributorSerializer
-    permission_classes = [IsAuthenticated, IsAuthorPermission, ContributorPermission]
+    permission_classes = [IsAuthenticated, ContributorPermission]
 
     def perform_create(self, serializer):
         project = self.request.data.get("project")
@@ -46,45 +54,3 @@ class ContributorViewSet(viewsets.ModelViewSet):
             raise PermissionDenied(
                 "Vous devez être l'auteur du projet pour ajouter des contributeurs."
             )
-
-
-class IssueViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
-
-    queryset = Issue.objects.all()
-    serializer_class = IssueListSerializer
-    detail_serializer_class = IssueDetailSerializer
-    permission_classes = [IsAuthenticated, IsAuthorPermission, IssuePermission]
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return self.detail_serializer_class
-        return super().get_serializer_class()
-    
-    def perform_create(self, serializer):
-        author = self.request.user
-        project_id = self.request.data.get("project")
-        if not Contributor.objects.filter(user=author, project=project_id).exists():
-            raise PermissionDenied("Seuls les contributeurs du projet peuvent créer un problème.")
-
-        assignee_id = self.request.data.get("assigned_to")
-        if assignee_id:
-            if not Contributor.objects.filter(user_id=assignee_id, project_id=project_id).exists():
-                raise PermissionDenied("L'utilisateur assigné doit être un contributeur du projet.")
-        serializer.save(author=author, project_id=project_id)
-    
-
-class CommentViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
-
-    queryset = Comment.objects.all()
-    serializer_class = CommentListSerializer
-    detail_serializer_class = CommentDetailSerializer
-    permission_classes = [IsAuthenticated, IsAuthorPermission, CommentPermission]
-    
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return self.detail_serializer_class
-        return super().get_serializer_class()
-    
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-    
