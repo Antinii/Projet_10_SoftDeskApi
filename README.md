@@ -14,7 +14,7 @@ git clone https://github.com/Antinii/Projet_10_SoftDeskApi.git
 ```
 2. Déplacez vous dans le répertoire du projet avec la commande:
 ```
-cd Projet_9_SoftDeskApi
+cd Projet_10_SoftDeskApi
 ```
 3. Installez les dépendances à l'aide de la commande:
 ```
