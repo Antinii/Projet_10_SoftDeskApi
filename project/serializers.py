@@ -7,7 +7,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'created_time']
-   
+
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
 
@@ -16,13 +16,13 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = "__all__"
-    
+
     def get_issues(self, instance):
         queryset = instance.issues.filter(project=instance.id)
         serializer = IssueListSerializer(queryset, many=True)
         return serializer.data
-    
-    
+
+
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor

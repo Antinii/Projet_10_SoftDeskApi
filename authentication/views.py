@@ -33,13 +33,13 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return Response({"message": "You do not have permission to delete this user."},
                             status=status.HTTP_403_FORBIDDEN)
-    
+
 
 class SignupView(APIView):
     """
     View to create a user
     """
-    
+
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():

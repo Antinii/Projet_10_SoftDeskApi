@@ -14,7 +14,7 @@ class MultipleSerializerMixin:
         if self.action == 'retrieve' and self.detail_serializer_class is not None:
             return self.detail_serializer_class
         return super().get_serializer_class()
-    
+
 
 class ProjectViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
 
@@ -27,7 +27,7 @@ class ProjectViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
         if self.action == 'create' or self.action == 'update':
             return self.detail_serializer_class
         return super().get_serializer_class()
-    
+
     def perform_create(self, serializer):
         user = self.request.user
         serializer.save(author=user, contributors=[user])

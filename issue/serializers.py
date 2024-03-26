@@ -8,7 +8,7 @@ from comment.serializers import CommentListSerializer
 class IssueListSerializer(serializers.ModelSerializer):
     """
     Serializer for Issue attached to a project
-    """  
+    """
     class Meta:
         model = Issue
         fields = ['id']

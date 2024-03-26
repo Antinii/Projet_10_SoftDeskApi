@@ -14,7 +14,7 @@ class Project(models.Model):
                     ('FRONT-END', 'front-end'),
                     ('IOS', 'iOS'),
                     ('ANDROID', 'android')
-    ]
+                    ]
 
     created_time = models.DateTimeField(auto_now_add=True)
 
@@ -23,7 +23,8 @@ class Project(models.Model):
     type = models.CharField(max_length=64, choices=PROJECT_TYPE)
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='project_author')
 
-    contributors = models.ManyToManyField(to=settings.AUTH_USER_MODEL, through='Contributor', related_name='project_contributors')
+    contributors = models.ManyToManyField(to=settings.AUTH_USER_MODEL, through='Contributor',
+                                          related_name='project_contributors')
 
 
 class Contributor(models.Model):
@@ -36,7 +37,7 @@ class Contributor(models.Model):
 
     def __str__(self):
         return self.user
-    
+
     @receiver(post_save, sender=Project)
     def create_author_contributor(sender, instance, created, **kwargs):
         if created:

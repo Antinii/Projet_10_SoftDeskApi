@@ -8,6 +8,8 @@ django = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 drf-nested-routers = "*"
+flake8 = "*"
+flake8-html = "*"
 
 [dev-packages]
 

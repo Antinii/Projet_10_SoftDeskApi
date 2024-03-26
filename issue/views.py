@@ -20,7 +20,7 @@ class IssueViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
         if self.action == 'create' or self.action == 'update':
             return self.detail_serializer_class
         return super().get_serializer_class()
-    
+
     def perform_create(self, serializer):
         author = self.request.user
         project_id = self.request.data.get("project")

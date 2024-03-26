@@ -13,12 +13,12 @@ class CommentViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
     serializer_class = CommentListSerializer
     detail_serializer_class = CommentDetailSerializer
     permission_classes = [IsAuthenticated, IsAuthorPermission, CommentPermission]
-    
+
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
             return self.detail_serializer_class
         return super().get_serializer_class()
-    
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
