@@ -4,6 +4,9 @@ from datetime import datetime
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Users
+    """
 
     class Meta:
         model = User
@@ -11,6 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.ModelSerializer):
+    """
+    Serializer for signup, validating >15 years old requirement
+    """
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     class Meta:
