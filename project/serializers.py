@@ -4,12 +4,18 @@ from issue.serializers import IssueListSerializer
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing projects.
+    """
     class Meta:
         model = Project
         fields = ['id', 'created_time']
 
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for project details.
+    """
 
     issues = serializers.SerializerMethodField()
 
@@ -24,6 +30,9 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
 
 class ContributorSerializer(serializers.ModelSerializer):
+    """
+    Serializer for contributors.
+    """
     class Meta:
         model = Contributor
         fields = ['id', 'user', 'project']

@@ -4,6 +4,9 @@ from project.models import Contributor
 
 
 def is_contributor(user, project):
+    """
+    Checks if the user is a contributor of the project.
+    """
     if Contributor.objects.filter(user=user, project=project).exists():
         return True
     else:
@@ -13,6 +16,9 @@ def is_contributor(user, project):
 
 
 class IsAuthorPermission(permissions.BasePermission):
+    """
+    Permission class to check if the user is the author of an object.
+    """
     def has_object_permission(self, request, view, obj):
         if request.method in ["PUT", "DELETE", "PATCH"]:
             if obj.author == request.user:
@@ -25,6 +31,9 @@ class IsAuthorPermission(permissions.BasePermission):
 
 
 class ProjectPermission(permissions.BasePermission):
+    """
+    Permission class to check if the user has permission for project-related actions.
+    """
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return is_contributor(request.user, obj.id)
@@ -32,6 +41,9 @@ class ProjectPermission(permissions.BasePermission):
 
 
 class ContributorPermission(permissions.BasePermission):
+    """
+    Permission class to check if the user has permission for contributor-related actions.
+    """
     def has_object_permission(self, request, view, obj):
         project = obj.project
         if request.method == "DELETE":
@@ -46,10 +58,16 @@ class ContributorPermission(permissions.BasePermission):
 
 
 class IssuePermission(permissions.BasePermission):
+    """
+    Permission class to check if the user has permission for issue-related actions.
+    """
     def has_object_permission(self, request, view, obj):
         return is_contributor(request.user, obj.project)
 
 
 class CommentPermission(permissions.BasePermission):
+    """
+    Permission class to check if the user has permission for comment-related actions.
+    """
     def has_object_permission(self, request, view, obj):
         return is_contributor(request.user, obj.issue.project)

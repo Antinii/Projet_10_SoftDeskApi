@@ -8,6 +8,10 @@ from datetime import datetime
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for handling CRUD operations on user accounts.
+    Inherits from viewsets.ModelViewSet.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -24,6 +28,9 @@ class UserViewSet(viewsets.ModelViewSet):
         super().perform_update(serializer)
 
     def update(self, request, *args, **kwargs):
+        """
+        Updates an existing user account.
+        """
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
@@ -37,6 +44,12 @@ class UserViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_403_FORBIDDEN)
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes an existing user account.
+        Checks if the user making the request is the owner of the user account.
+        If they match, deletes the user account.
+        Otherwise, returns a 403 Forbidden response.
+        """
         instance = self.get_object()
 
         if request.user == instance:
