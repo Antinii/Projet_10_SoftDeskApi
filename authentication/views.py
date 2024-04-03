@@ -1,15 +1,27 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework.views import APIView
 from authentication.serializer import UserSerializer, SignupSerializer
 from authentication.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from datetime import datetime
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        validated_data = serializer.validated_data
+
+        if 'birthdate' in validated_data:
+            new_birthdate = validated_data['birthdate']
+            if (datetime.now().date() - new_birthdate).days / 365 < 15:
+                raise serializers.ValidationError("Users must be at least 15 years old.")
+
+        super().perform_update(serializer)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

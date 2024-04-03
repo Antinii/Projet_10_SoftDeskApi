@@ -20,7 +20,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     def get_issues(self, instance):
         queryset = instance.issues.filter(project=instance.id)
         serializer = IssueListSerializer(queryset, many=True)
-        return serializer.data
+        return [issue['id'] for issue in serializer.data]
 
 
 class ContributorSerializer(serializers.ModelSerializer):

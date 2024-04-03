@@ -9,10 +9,15 @@ from project.views import MultipleSerializerMixin
 
 class CommentViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
 
-    queryset = Comment.objects.all()
     serializer_class = CommentListSerializer
     detail_serializer_class = CommentDetailSerializer
     permission_classes = [IsAuthenticated, IsAuthorPermission, CommentPermission]
+
+    def get_queryset(self):
+        project_id = self.kwargs.get('project_pk')
+        issue_id = self.kwargs.get('issue_pk')
+        queryset = Comment.objects.filter(issue__project_id=project_id, issue_id=issue_id)
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
